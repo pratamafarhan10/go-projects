@@ -1,0 +1,13 @@
+{
+  "_id": "5a9a3b0b0f5ae10001c5b8b8",
+  "email": "user@gmail.com",
+  "password": "hashed password",
+  "firstname": "user",
+  "lastname": "user",
+  "picture": "https://www.gravatar.com/avatar/00000000000000000000000000000000?s=200&d=retro",
+  "role": "user",
+  "forgotPassword": {
+    "token": "qa890sdh89qawd",
+    "expires": "01/02 03:04:05PM '06 -0700"
+  }
+}
