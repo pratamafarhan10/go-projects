@@ -21,12 +21,12 @@ type User struct {
 }
 
 type UserResponse struct {
-	Id        primitive.ObjectID `bson:"_id" json:"_id"`
-	Email     string             `bson:"email" json:"email"`
-	FirstName string             `bson:"firstname" json:"firstname"`
-	LastName  string             `bson:"lastname" json:"lastname"`
-	Picture   string             `bson:"picture" json:"picture"`
-	Role      string             `bson:"role" json:"role"`
+	Id        string `bson:"_id" json:"_id"`
+	Email     string `bson:"email" json:"email"`
+	FirstName string `bson:"firstname" json:"firstname"`
+	LastName  string `bson:"lastname" json:"lastname"`
+	Picture   string `bson:"picture" json:"picture"`
+	Role      string `bson:"role" json:"role"`
 }
 
 type ForgotPassword struct {
@@ -41,9 +41,11 @@ func (user User) GetUser(projection bson.M, dst any) error {
 	return err
 }
 
-func (user User) InsertUser() error {
-	_, err := UserCollection.InsertOne(context.Background(), user)
-	return err
+func (user User) InsertUser() (string, error) {
+	res, err := UserCollection.InsertOne(context.Background(), user)
+
+	oid, _ := res.InsertedID.(primitive.ObjectID)
+	return oid.Hex(), err
 }
 
 func (user User) UpdateUser(update bson.M) error {

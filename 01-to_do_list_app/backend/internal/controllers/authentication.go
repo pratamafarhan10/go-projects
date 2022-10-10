@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-projects/01-to_do_list_app/backend/internal/models"
 	"github.com/julienschmidt/httprouter"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -51,22 +50,21 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 
 	req.Password = string(hp)
 
-	err = req.InsertUser()
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	userRes := models.UserResponse{}
-
-	err = req.GetUser(bson.M{"_id": 1, "email": 1, "firstname": 1, "lastname": 1, "picture": 1, "role": 1}, &userRes)
+	id, err := req.InsertUser()
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	s := SuccessResponse{
-		Data: userRes,
+		Data: models.UserResponse{
+			Id:        id,
+			Email:     req.Email,
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
+			Picture:   req.Picture,
+			Role:      req.Role,
+		},
 	}
 
 	bs, err := json.Marshal(s)
