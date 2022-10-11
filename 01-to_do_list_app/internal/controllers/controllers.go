@@ -1,7 +1,7 @@
 package controllers
 
 type ErrorResponse struct {
-	Errors map[string][]string
+	Errors interface{}
 }
 
 type SuccessResponse struct {

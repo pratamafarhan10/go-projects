@@ -11,12 +11,12 @@ import (
 
 type User struct {
 	Id             primitive.ObjectID `bson:"_id" json:"_id"`
-	Email          string             `bson:"email" json:"email"`
-	Password       string             `bson:"password" json:"password"`
-	FirstName      string             `bson:"firstname" json:"firstname"`
-	LastName       string             `bson:"lastname" json:"lastname"`
-	Picture        string             `bson:"picture" json:"picture"`
-	Role           string             `bson:"role" json:"role"`
+	Email          string             `bson:"email" json:"email" validate:"required,email"`
+	Password       string             `bson:"password" json:"password" validate:"required,min=8"`
+	FirstName      string             `bson:"firstname" json:"firstname" validate:"required"`
+	LastName       string             `bson:"lastname" json:"lastname" validate:"required"`
+	Picture        string             `bson:"picture" json:"picture" validate:"required"`
+	Role           string             `bson:"role" json:"role" validate:"required"`
 	ForgotPassword ForgotPassword     `bson:"forgotPassword" json:"forgotPassword"`
 }
 
@@ -34,8 +34,8 @@ type ForgotPassword struct {
 	Expires string `bson:"expires" json:"expires"`
 }
 
-func (user User) GetUser(projection bson.M, dst any) error {
-	res := UserCollection.FindOne(context.Background(), bson.M{"_id": user.Id}, options.FindOne().SetProjection(projection))
+func (user User) GetUser(filter bson.M, projection bson.M, dst any) error {
+	res := UserCollection.FindOne(context.Background(), filter, options.FindOne().SetProjection(projection))
 	err := res.Decode(dst)
 
 	return err

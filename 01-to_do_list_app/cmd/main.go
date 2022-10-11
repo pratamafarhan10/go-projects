@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-projects/01-to_do_list_app/backend/internal/routes"
+	"github.com/go-projects/01-to_do_list_app/internal/routes"
 )
 
 func main() {
