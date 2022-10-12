@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"mime/multipart"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,7 +18,19 @@ type User struct {
 	LastName       string             `bson:"lastname" json:"lastname" validate:"required"`
 	Picture        string             `bson:"picture" json:"picture" validate:"required"`
 	Role           string             `bson:"role" json:"role" validate:"required"`
+	Token          string             `bson:"token" json:"token"`
 	ForgotPassword ForgotPassword     `bson:"forgotPassword" json:"forgotPassword"`
+}
+
+type UpdateUserRequest struct {
+	Id              primitive.ObjectID `bson:"_id" json:"_id" validate:"required"`
+	Email           string             `bson:"email" json:"email" validate:"required,email"`
+	OldPassword     string             `bson:"oldPassword" json:"oldPassword" validate:"required,min=8"`
+	Password        string             `bson:"password" json:"password" validate:"required,min=8,eqfield=passwordConfirm"`
+	PasswordConfirm string             `bson:"passwordConfirm" json:"passwordConfirm" validate:"required,min=8"`
+	FirstName       string             `bson:"firstname" json:"firstname" validate:"required"`
+	LastName        string             `bson:"lastname" json:"lastname" validate:"required"`
+	Picture         multipart.File     `bson:"picture" json:"picture"`
 }
 
 type UserResponse struct {
@@ -48,10 +61,16 @@ func (user User) InsertUser() (string, error) {
 	return oid.Hex(), err
 }
 
-func (user User) UpdateUser(update bson.M) error {
-	_, err := UserCollection.UpdateOne(context.Background(), bson.M{"_id": user.Id}, update)
+func (user User) UpdateUser(filter, update bson.M) error {
+	_, err := UserCollection.UpdateOne(context.Background(), filter, update)
 
 	return err
+}
+
+func (user User) CheckToken() error {
+	res := UserCollection.FindOne(context.Background(), bson.M{"email": user.Email, "token": user.Token})
+
+	return res.Err()
 }
 
 func (user User) EmailAlreadyTaken() bool {

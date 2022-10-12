@@ -178,12 +178,21 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 		return
 	}
 
+	// Generate token
 	token, err := ac.generateJWT(user.Email)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	// Update user token
+	err = user.UpdateUser(bson.M{"_id": user.Id}, bson.M{"$set": bson.M{"token": token}})
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Sending back response
 	res := SuccessResponse{
 		Data: map[string]string{
 			"token": token,
@@ -201,9 +210,39 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 	w.Write(bs)
 }
 
+func (ac AuthController) Logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params, token *jwt.Token) {
+	// Claims token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	email, ok := claims["email"].(string)
+	if !ok {
+		fmt.Println("disini")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	user := models.User{
+		Email: email,
+		Token: token.Raw,
+	}
+
+	err := user.UpdateUser(bson.M{"token": user.Token, "email": user.Email}, bson.M{"$set": bson.M{"token": ""}})
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Logout success"))
+}
+
 func (ac AuthController) generateJWT(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"exp":   time.Now().Add(10 * time.Minute),
+		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 		"email": email,
 	})
 
@@ -211,11 +250,10 @@ func (ac AuthController) generateJWT(email string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(s)
 
 	return s, nil
 }
 
-func (ac AuthController) Tes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (ac AuthController) Tes(w http.ResponseWriter, r *http.Request, _ httprouter.Params, _ *jwt.Token) {
 	fmt.Fprintln(w, "Hello tes")
 }
