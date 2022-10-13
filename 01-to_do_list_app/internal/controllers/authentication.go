@@ -36,39 +36,16 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 	err = validator.New().StructExcept(&req, "Picture")
 	if err != nil {
 		split := strings.Split(err.Error(), "\n")
-
-		res := ErrorResponse{
-			Errors: split,
-		}
-
-		bs, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(bs)
+		sendErrorResponse(w, split, http.StatusNotFound)
 		return
 	}
 
 	alreadyTaken := req.EmailAlreadyTaken()
 	if alreadyTaken {
-		res := ErrorResponse{
-			Errors: map[string][]string{
-				"username": {"username already taken"},
-			},
+		data := map[string][]string{
+			"username": {"username already taken"},
 		}
-		bs, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(bs)
+		sendErrorResponse(w, data, http.StatusNotFound)
 		return
 	}
 
@@ -87,26 +64,16 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 		return
 	}
 
-	s := SuccessResponse{
-		Data: models.UserResponse{
-			Id:        id,
-			Email:     req.Email,
-			FirstName: req.FirstName,
-			LastName:  req.LastName,
-			Picture:   req.Picture,
-			Role:      req.Role,
-		},
+	data := models.UserResponse{
+		Id:        id,
+		Email:     req.Email,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Picture:   req.Picture,
+		Role:      req.Role,
 	}
 
-	bs, err := json.Marshal(s)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(bs)
+	sendSuccessResponse(w, data, http.StatusCreated)
 }
 
 func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -119,22 +86,8 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 
 	err = validator.New().StructExcept(&req, "FirstName", "LastName", "Picture", "Role")
 	if err != nil {
-
 		split := strings.Split(err.Error(), "\n")
-
-		res := ErrorResponse{
-			Errors: split,
-		}
-
-		bs, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(bs)
+		sendErrorResponse(w, split, http.StatusNotFound)
 		return
 	}
 
@@ -143,38 +96,14 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 
 	err = req.GetUser(bson.M{"email": req.Email}, bson.M{}, &user)
 	if err == mongo.ErrNoDocuments {
-		res := ErrorResponse{
-			Errors: "user not found",
-		}
-
-		bs, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(bs)
+		sendErrorResponse(w, "user not found", http.StatusNotFound)
 		return
 	}
 
 	// Compare password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		res := ErrorResponse{
-			Errors: "wrong password",
-		}
-
-		bs, err := json.Marshal(res)
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(bs)
+		sendErrorResponse(w, "wrong password", http.StatusNotFound)
 		return
 	}
 
@@ -193,21 +122,11 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 	}
 
 	// Sending back response
-	res := SuccessResponse{
-		Data: map[string]string{
-			"token": token,
-		},
+	data := map[string]string{
+		"token": token,
 	}
 
-	bs, err := json.Marshal(res)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(bs)
+	sendSuccessResponse(w, data, http.StatusOK)
 }
 
 func (ac AuthController) Logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params, token *jwt.Token) {
