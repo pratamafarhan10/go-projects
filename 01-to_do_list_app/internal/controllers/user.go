@@ -10,11 +10,8 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/go-projects/01-to_do_list_app/internal/models"
-	"github.com/golang-jwt/jwt"
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -28,40 +25,22 @@ func NewUserController() *UserController {
 	}
 }
 
-func (uc UserController) GetUser(w http.ResponseWriter, r *http.Request, _ httprouter.Params, token *jwt.Token) {
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	res := models.UserResponse{}
-
-	err := uc.UserModel.GetUser(bson.M{"email": email}, bson.M{"forgotPassword": 0, "token": 0, "password": 0}, &res)
-	if err == mongo.ErrNoDocuments {
-		sendErrorResponse(w, "user not found", http.StatusNotFound)
-		return
+func (uc UserController) GetUser(w http.ResponseWriter, r *http.Request, _ httprouter.Params, user models.User) {
+	res := models.UserResponse{
+		Id:        user.Id.Hex(),
+		Email:     user.Email,
+		FirstName: user.Email,
+		LastName:  user.LastName,
+		Picture:   user.Picture,
 	}
 
 	sendSuccessResponse(w, res, http.StatusOK)
 }
 
-func (uc UserController) UpdateUser(w http.ResponseWriter, r *http.Request, _ httprouter.Params, token *jwt.Token) {
-	// Get User Request
-	id, err := primitive.ObjectIDFromHex(r.FormValue("_id"))
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
+func (uc UserController) UpdateUser(w http.ResponseWriter, r *http.Request, _ httprouter.Params, user models.User) {
+	// Get user request
 	req := models.UpdateUserRequest{
-		Id:              id,
+		Id:              user.Id,
 		Email:           r.FormValue("email"),
 		OldPassword:     r.FormValue("oldPassword"),
 		Password:        r.FormValue("password"),
@@ -71,37 +50,13 @@ func (uc UserController) UpdateUser(w http.ResponseWriter, r *http.Request, _ ht
 	}
 
 	// Validate request
-	err = validator.New().Struct(&req)
+	err := validator.New().Struct(&req)
 	if err != nil {
 		split := strings.Split(err.Error(), "\n")
 		sendErrorResponse(w, split, http.StatusBadRequest)
 		return
 	}
 
-	// Get email from token
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	// Get current user
-	user := models.User{}
-	err = uc.UserModel.GetUser(bson.M{"email": email}, bson.M{}, &user)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			sendErrorResponse(w, "user not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
 	req.Picture = user.Picture
 
 	// Compare old password
@@ -144,7 +99,6 @@ func (uc UserController) UpdateUser(w http.ResponseWriter, r *http.Request, _ ht
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Picture:   req.Picture,
-		Role:      user.Role,
 	}
 
 	sendSuccessResponse(w, data, http.StatusOK)

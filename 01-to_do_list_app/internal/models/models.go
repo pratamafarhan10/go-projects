@@ -11,7 +11,7 @@ import (
 var Client *mongo.Client
 var Db *mongo.Database
 var UserCollection *mongo.Collection
-var TodosCollection *mongo.Collection
+var TodoListCollection *mongo.Collection
 
 func init() {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://admin:password@localhost:27017/todolistapp"))
@@ -22,5 +22,5 @@ func init() {
 	Client = client
 	Db = client.Database("todolistapp")
 	UserCollection = Db.Collection("users")
-	TodosCollection = Db.Collection("todos")
+	TodoListCollection = Db.Collection("todolists")
 }

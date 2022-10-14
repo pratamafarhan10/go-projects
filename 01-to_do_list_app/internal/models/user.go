@@ -38,7 +38,6 @@ type UserResponse struct {
 	FirstName string `bson:"firstname" json:"firstname"`
 	LastName  string `bson:"lastname" json:"lastname"`
 	Picture   string `bson:"picture" json:"picture"`
-	Role      string `bson:"role" json:"role"`
 }
 
 type ForgotPassword struct {
@@ -66,10 +65,11 @@ func (user User) UpdateUser(filter, update bson.M) error {
 	return err
 }
 
-func (user User) CheckToken() error {
+func (user User) CheckToken(dst any) error {
 	res := UserCollection.FindOne(context.Background(), bson.M{"email": user.Email, "token": user.Token})
+	err := res.Decode(dst)
 
-	return res.Err()
+	return err
 }
 
 func (user User) EmailAlreadyTaken() bool {

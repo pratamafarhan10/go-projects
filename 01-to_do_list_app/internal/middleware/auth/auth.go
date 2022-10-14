@@ -11,7 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func VerifyJWT(handler func(w http.ResponseWriter, r *http.Request, p httprouter.Params, token *jwt.Token)) httprouter.Handle {
+func VerifyJWT(handler func(w http.ResponseWriter, r *http.Request, p httprouter.Params, user models.User)) httprouter.Handle {
 	return httprouter.Handle(func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		if r.Header["Authorization"] == nil {
 			http.Error(w, "User not authenticated", http.StatusUnauthorized)
@@ -33,22 +33,24 @@ func VerifyJWT(handler func(w http.ResponseWriter, r *http.Request, p httprouter
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
+		user := models.User{}
 		if ok && token.Valid {
 			email := claims["email"].(string)
-			user := models.User{
-				Token: tokenString,
-				Email: email,
-			}
+			user.Token = tokenString
+			user.Email = email
 
-			err = user.CheckToken()
-			if err != nil {
+			err = user.CheckToken(&user)
+			if err == nil {
 				http.Error(w, "User not authenticated", http.StatusUnauthorized)
+				return
+			} else if err != nil {
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
 		}
 
 		if token.Valid {
-			handler(w, r, p, token)
+			handler(w, r, p, user)
 		} else {
 			http.Error(w, "User not authenticated", http.StatusUnauthorized)
 		}

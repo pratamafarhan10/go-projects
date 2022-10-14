@@ -70,7 +70,6 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Picture:   req.Picture,
-		Role:      req.Role,
 	}
 
 	sendSuccessResponse(w, data, http.StatusCreated)
@@ -129,25 +128,7 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 	sendSuccessResponse(w, data, http.StatusOK)
 }
 
-func (ac AuthController) Logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params, token *jwt.Token) {
-	// Claims token
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	email, ok := claims["email"].(string)
-	if !ok {
-		fmt.Println("disini")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	user := models.User{
-		Email: email,
-		Token: token.Raw,
-	}
-
+func (ac AuthController) Logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params, user models.User) {
 	err := user.UpdateUser(bson.M{"token": user.Token, "email": user.Email}, bson.M{"$set": bson.M{"token": ""}})
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -173,6 +154,6 @@ func (ac AuthController) generateJWT(email string) (string, error) {
 	return s, nil
 }
 
-func (ac AuthController) Tes(w http.ResponseWriter, r *http.Request, _ httprouter.Params, _ *jwt.Token) {
+func (ac AuthController) Tes(w http.ResponseWriter, r *http.Request, _ httprouter.Params, _ models.User) {
 	fmt.Fprintln(w, "Hello tes")
 }
