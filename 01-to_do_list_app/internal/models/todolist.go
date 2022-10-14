@@ -20,7 +20,20 @@ type Todos struct {
 	Id        primitive.ObjectID `bson:"_id" json:"_id"`
 	Title     string             `bson:"title" json:"title" validate:"required"`
 	Completed bool               `bson:"completed" json:"completed" validate:"required"`
-	Time      time.Time          `bson:"date" json:"date"`
+	Time      time.Time          `bson:"time" json:"time"`
+}
+
+type UpdateTodosRequest struct {
+	Date      time.Time          `bson:"date" json:"date" validate:"required,datetime=2006-02-01"`
+	User_Id   primitive.ObjectID `bson:"user_id" json:"user_id" validate:"required"`
+	TodoId    primitive.ObjectID `bson:"todo_id" json:"todo_id" validate:"required"`
+	Title     string             `bson:"title" json:"title" validate:"required"`
+	Completed bool               `bson:"completed" json:"completed" validate:"required"`
+	Time      time.Time          `bson:"time" json:"time"`
+}
+
+type TodoLists struct {
+	Data []TodoList
 }
 
 func (t TodoList) GetTodoList(filter bson.M, projection bson.M, dst any) error {
@@ -52,4 +65,14 @@ func (t TodoList) InsertTodoList() (string, error) {
 	}
 
 	return "", nil
+}
+
+func (t TodoList) UpdateTodoList(data UpdateTodosRequest) error {
+	_, err := TodoListCollection.UpdateOne(
+		context.Background(),
+		bson.M{"date": data.Date, "user_id": data.User_Id, "todos": bson.M{"$elemMatch": bson.M{"_id": data.TodoId}}},
+		bson.M{"$set": bson.M{"todos.$.title": data.Title, "todos.$.completed": data.Completed, "todos.$.time": data.Time}},
+	)
+
+	return err
 }
