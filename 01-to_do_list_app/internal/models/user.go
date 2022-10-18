@@ -20,6 +20,7 @@ type User struct {
 	Role           string             `bson:"role" json:"role" validate:"required"`
 	Token          string             `bson:"token" json:"token"`
 	ForgotPassword ForgotPassword     `bson:"forgotPassword" json:"forgotPassword"`
+	Verification   Verification       `bson:"verification" json:"verification"`
 }
 
 type UpdateUserRequest struct {
@@ -42,6 +43,11 @@ type UserResponse struct {
 }
 
 type ForgotPassword struct {
+	Token   string `bson:"token" json:"token"`
+	Expires string `bson:"expires" json:"expires"`
+}
+
+type Verification struct {
 	Token   string `bson:"token" json:"token"`
 	Expires string `bson:"expires" json:"expires"`
 }

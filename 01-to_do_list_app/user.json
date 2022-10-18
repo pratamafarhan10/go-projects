@@ -10,5 +10,9 @@
   "forgotPassword": {
     "token": "qa890sdh89qawd",
     "expires": "01/02 03:04:05PM '06 -0700"
+  },
+  "verification" : {
+    "token": "qa890sdh89qawd",
+    "expires": "01/02 03:04:05PM '06 -0700"
   }
 }
