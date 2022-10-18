@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 
 type AuthController struct{}
 
-var SampleSecretKey = []byte("SecretYouShouldHide")
+// var SampleSecretKey = []byte("SecretYouShouldHide")
 
 func NewAuthController() *AuthController {
 	return &AuthController{}
@@ -57,6 +58,7 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 
 	req.Password = string(hp)
 	req.Id = primitive.NewObjectID()
+	req.IsVerified = false
 
 	id, err := req.InsertUser()
 	if err != nil {
@@ -146,7 +148,7 @@ func (ac AuthController) generateJWT(email string) (string, error) {
 		"email": email,
 	})
 
-	s, err := token.SignedString(SampleSecretKey)
+	s, err := token.SignedString([]byte(os.Getenv("SECRET_KEY")))
 	if err != nil {
 		return "", err
 	}

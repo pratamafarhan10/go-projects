@@ -16,6 +16,7 @@ type User struct {
 	FirstName      string             `bson:"firstname" json:"firstname" validate:"required"`
 	LastName       string             `bson:"lastname" json:"lastname" validate:"required"`
 	Picture        string             `bson:"picture" json:"picture" validate:"required"`
+	IsVerified     bool               `bson:"isVerified" json:"isVerified"`
 	Role           string             `bson:"role" json:"role" validate:"required"`
 	Token          string             `bson:"token" json:"token"`
 	ForgotPassword ForgotPassword     `bson:"forgotPassword" json:"forgotPassword"`

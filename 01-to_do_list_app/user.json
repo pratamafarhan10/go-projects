@@ -6,6 +6,7 @@
   "lastname": "user",
   "picture": "https://www.gravatar.com/avatar/00000000000000000000000000000000?s=200&d=retro",
   "role": "user",
+  "isVerified": false,
   "forgotPassword": {
     "token": "qa890sdh89qawd",
     "expires": "01/02 03:04:05PM '06 -0700"
