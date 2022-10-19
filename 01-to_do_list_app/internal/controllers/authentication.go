@@ -248,7 +248,7 @@ func (ac AuthController) SendForgotPassword(w http.ResponseWriter, r *http.Reque
 
 	err = req.GetUser(bson.M{"email": req.Email}, bson.M{}, &req)
 	if err == mongo.ErrNoDocuments {
-		http.Error(w, "User not found", http.StatusNotFound)
+		sendErrorResponse(w, "user not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
@@ -274,6 +274,82 @@ func (ac AuthController) SendForgotPassword(w http.ResponseWriter, r *http.Reque
 	}
 
 	sendSuccessResponse(w, "set forgot password token successfull", http.StatusCreated)
+}
+
+func (ac AuthController) CheckForgotPasswordTokenValidity(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	fpToken := p.ByName("token")
+
+	user := models.User{}
+
+	err := user.GetUser(bson.M{"forgotPassword.token": fpToken}, bson.M{}, &user)
+	if err == mongo.ErrNoDocuments {
+		sendErrorResponse(w, "token not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if t, _ := time.Parse(time.Layout, user.ForgotPassword.Expires); time.Until(t) < 0 {
+		sendErrorResponse(w, "token expired", http.StatusBadRequest)
+		return
+	}
+	sendSuccessResponse(w, "token is valid", http.StatusOK)
+}
+
+func (ac AuthController) UpdatePassword(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	fpToken := p.ByName("token")
+
+	// Get user request
+	req := models.User{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Validate user request
+	err = validator.New().StructExcept(&req, "Email", "FirstName", "LastName", "Picture", "Role")
+	if err != nil {
+		split := strings.Split(err.Error(), "\n")
+		sendErrorResponse(w, split, http.StatusNotFound)
+		return
+	}
+
+	// Get current user
+	user := models.User{}
+	err = user.GetUser(bson.M{"forgotPassword.token": fpToken}, bson.M{}, &user)
+	if err == mongo.ErrNoDocuments {
+		sendErrorResponse(w, "user not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if token expired
+	if t, _ := time.Parse(time.Layout, user.ForgotPassword.Expires); time.Until(t) < 0 {
+		sendErrorResponse(w, "token expired", http.StatusBadRequest)
+		return
+	}
+
+	hp, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Update password and reset token
+	err = req.UpdateUser(bson.M{"_id": user.Id}, bson.M{"$set": bson.M{"password": string(hp), "forgotPassword.token": "", "forgotPassword.expires": ""}})
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Send success response
+	sendSuccessResponse(w, "reset password succeed", http.StatusOK)
 }
 
 func (ac AuthController) Tes(w http.ResponseWriter, r *http.Request, _ httprouter.Params, _ models.User) {

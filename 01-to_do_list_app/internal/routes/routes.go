@@ -15,6 +15,9 @@ func Router() *httprouter.Router {
 
 	router.POST("/register", auth.Register)
 	router.GET("/verify/:token", auth.VerifyEmail)
+	router.POST("/forgotpassword", auth.SendForgotPassword)
+	router.GET("/forgotpassword/:token", auth.CheckForgotPasswordTokenValidity)
+	router.POST("/forgotpassword/:token/update", auth.UpdatePassword)
 	router.POST("/login", auth.Login)
 	router.GET("/tes", MiddlewareAuth.VerifyJWT(auth.Tes))
 	router.GET("/logout", MiddlewareAuth.VerifyJWT(auth.Logout))
