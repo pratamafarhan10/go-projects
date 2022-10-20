@@ -5,12 +5,13 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type TodoLists struct {
 	Id      primitive.ObjectID `bson:"_id" json:"_id"`
-	Date    string             `bson:"date" json:"date" validate:"required,datetime=01-02-2006"`
+	Date    string             `bson:"date" json:"date"`
 	User_Id primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Tasks   []Task             `bson:"tasks" json:"tasks"`
 }
@@ -18,8 +19,8 @@ type TodoLists struct {
 type Task struct {
 	Id        primitive.ObjectID `bson:"_id" json:"_id"`
 	Title     string             `bson:"title" json:"title" validate:"required"`
-	Completed bool               `bson:"completed" json:"completed"`
-	Time      string             `bson:"time" json:"time"`
+	Completed bool               `bson:"completed" json:"completed" validate:"boolean"`
+	Time      string             `bson:"time" json:"time" validate:"required"`
 }
 
 type TodoList struct {
@@ -79,21 +80,34 @@ func (t TodoList) InsertTodoList() error {
 }
 
 func (t TodoList) UpdateTodoList() error {
-	_, err := TodoListCollection.UpdateOne(
+	res, err := TodoListCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"date": t.Date, "user_id": t.User_Id, "tasks": bson.M{"$elemMatch": bson.M{"_id": t.Task.Id}}},
 		bson.M{"$set": bson.M{"tasks.$.title": t.Task.Title, "tasks.$.completed": t.Task.Completed, "tasks.$.time": t.Task.Time}},
 	)
 
+	if res.MatchedCount < 1 {
+		return mongo.ErrNoDocuments
+	}
+
 	return err
 }
 
 func (t TodoList) DeleteTodoList() error {
-	_, err := TodoListCollection.UpdateOne(
+	res, err := TodoListCollection.UpdateOne(
 		context.TODO(),
 		bson.M{"date": t.Date, "user_id": t.User_Id},
-		bson.M{"$pull": bson.M{"todos": bson.M{"_id": t.Task.Id}}},
+		bson.M{"$pull": bson.M{"tasks": bson.M{"_id": t.Task.Id}}},
 	)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount < 1 {
+		return mongo.ErrNoDocuments
+	}
+
+	_, err = TodoListCollection.DeleteOne(context.TODO(), bson.M{"date": t.Date, "user_id": t.User_Id, "tasks": bson.M{"$size": 0}})
 
 	return err
 }

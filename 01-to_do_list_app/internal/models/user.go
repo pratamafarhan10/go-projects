@@ -13,11 +13,11 @@ type User struct {
 	Id             primitive.ObjectID `bson:"_id" json:"_id"`
 	Email          string             `bson:"email" json:"email" validate:"required,email"`
 	Password       string             `bson:"password" json:"password" validate:"required,min=8"`
-	FirstName      string             `bson:"firstname" json:"firstname" validate:"required"`
-	LastName       string             `bson:"lastname" json:"lastname" validate:"required"`
+	FirstName      string             `bson:"firstname" json:"firstname" validate:"required,alphanum"`
+	LastName       string             `bson:"lastname" json:"lastname" validate:"required,alphanum"`
 	Picture        string             `bson:"picture" json:"picture" validate:"required"`
 	IsVerified     bool               `bson:"isVerified" json:"isVerified"`
-	Role           string             `bson:"role" json:"role" validate:"required"`
+	Role           string             `bson:"role" json:"role" validate:"required,alphanum"`
 	Token          string             `bson:"token" json:"token"`
 	ForgotPassword ForgotPassword     `bson:"forgotPassword" json:"forgotPassword"`
 	Verification   Verification       `bson:"verification" json:"verification"`
@@ -29,8 +29,8 @@ type UpdateUserRequest struct {
 	OldPassword     string             `bson:"oldPassword" json:"oldPassword" validate:"required,min=8"`
 	Password        string             `bson:"password" json:"password" validate:"required,min=8,eqfield=PasswordConfirm"`
 	PasswordConfirm string             `bson:"passwordConfirm" json:"passwordConfirm" validate:"required,min=8"`
-	FirstName       string             `bson:"firstname" json:"firstname" validate:"required"`
-	LastName        string             `bson:"lastname" json:"lastname" validate:"required"`
+	FirstName       string             `bson:"firstname" json:"firstname" validate:"required,alphanum"`
+	LastName        string             `bson:"lastname" json:"lastname" validate:"required,alphanum"`
 	Picture         string             `bson:"picture" json:"picture"`
 }
 

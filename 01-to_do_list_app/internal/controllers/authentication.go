@@ -35,7 +35,7 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 	req := models.User{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Error decoding body request", http.StatusInternalServerError)
 		return
 	}
 
@@ -98,7 +98,7 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 	req := models.User{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Error decoding body request", http.StatusInternalServerError)
 		return
 	}
 
@@ -235,7 +235,7 @@ func (ac AuthController) SendForgotPassword(w http.ResponseWriter, r *http.Reque
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Error decoding body request", http.StatusInternalServerError)
 		return
 	}
 
@@ -305,7 +305,7 @@ func (ac AuthController) UpdatePassword(w http.ResponseWriter, r *http.Request, 
 	req := models.User{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Error decoding body request", http.StatusInternalServerError)
 		return
 	}
 

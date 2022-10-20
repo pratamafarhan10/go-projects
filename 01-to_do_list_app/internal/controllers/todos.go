@@ -11,6 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TodosController struct{}
@@ -25,7 +26,7 @@ func (tc TodosController) CreateTodos(w http.ResponseWriter, r *http.Request, _ 
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Error decoding body request", http.StatusInternalServerError)
 		return
 	}
 
@@ -78,4 +79,68 @@ func (tc TodosController) GetTodoList(w http.ResponseWriter, r *http.Request, _ 
 	}
 
 	sendSuccessResponse(w, todolists, http.StatusOK)
+}
+
+func (tc TodosController) UpdateTodoList(w http.ResponseWriter, r *http.Request, _ httprouter.Params, user models.User) {
+	// Get user request
+	req := models.TodoList{}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Error decoding body request", http.StatusInternalServerError)
+		return
+	}
+
+	// Validate user request
+	err = validator.New().Struct(&req)
+	if err != nil {
+		split := strings.Split(err.Error(), "\n")
+		sendErrorResponse(w, split, http.StatusNotFound)
+		return
+	}
+	req.User_Id = user.Id
+
+	err = req.UpdateTodoList()
+	if err == mongo.ErrNoDocuments {
+		sendErrorResponse(w, "no data found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	sendSuccessResponse(w, "update to do list successful", http.StatusOK)
+}
+
+func (tc TodosController) DeleteTodoList(w http.ResponseWriter, r *http.Request, _ httprouter.Params, user models.User) {
+	// Get user request
+	req := models.TodoList{}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Error decoding body request", http.StatusInternalServerError)
+		return
+	}
+
+	// Validate user request
+	err = validator.New().Struct(&req)
+	if err != nil {
+		split := strings.Split(err.Error(), "\n")
+		sendErrorResponse(w, split, http.StatusNotFound)
+		return
+	}
+	req.User_Id = user.Id
+
+	err = req.DeleteTodoList()
+	if err == mongo.ErrNoDocuments {
+		sendErrorResponse(w, "no data found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	sendSuccessResponse(w, "delete to do list successful", http.StatusOK)
 }

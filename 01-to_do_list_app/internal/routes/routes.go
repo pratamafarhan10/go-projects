@@ -25,6 +25,8 @@ func Router() *httprouter.Router {
 	router.GET("/user", MiddlewareAuth.VerifyJWT(user.GetUser))
 	router.POST("/user/update", MiddlewareAuth.VerifyJWT(user.UpdateUser))
 	router.POST("/todos/create", MiddlewareAuth.VerifyJWT(todo.CreateTodos))
+	router.POST("/todos/update", MiddlewareAuth.VerifyJWT(todo.UpdateTodoList))
+	router.DELETE("/todos/delete", MiddlewareAuth.VerifyJWT(todo.DeleteTodoList))
 	router.GET("/todos", MiddlewareAuth.VerifyJWT(todo.GetTodoList))
 	router.Handler("GET", "/assets/*filepath", http.StripPrefix("/assets", http.FileServer(http.Dir("../assets"))))
 	return router
