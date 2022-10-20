@@ -12,6 +12,7 @@ func Router() *httprouter.Router {
 	router := httprouter.New()
 	auth := controllers.NewAuthController()
 	user := controllers.NewUserController()
+	todo := controllers.NewTodosController()
 
 	router.POST("/register", auth.Register)
 	router.GET("/verify/:token", auth.VerifyEmail)
@@ -23,6 +24,8 @@ func Router() *httprouter.Router {
 	router.GET("/logout", MiddlewareAuth.VerifyJWT(auth.Logout))
 	router.GET("/user", MiddlewareAuth.VerifyJWT(user.GetUser))
 	router.POST("/user/update", MiddlewareAuth.VerifyJWT(user.UpdateUser))
+	router.POST("/todos/create", MiddlewareAuth.VerifyJWT(todo.CreateTodos))
+	router.GET("/todos", MiddlewareAuth.VerifyJWT(todo.GetTodoList))
 	router.Handler("GET", "/assets/*filepath", http.StripPrefix("/assets", http.FileServer(http.Dir("../assets"))))
 	return router
 }

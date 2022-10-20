@@ -2,7 +2,7 @@
   "_id": "5a9a3b0b0f5ae10001c5b8b8",
   "date": "01/02 03:04:05PM '06 -0700",
   "user_id": "5a9a3b0b0f5ae10001c5b8b7",
-  "todos": [
+  "tasks": [
     {
       "_id": "5a9a3b0b0f5ae10001c5b8b9",
       "title": "Buy milk",
