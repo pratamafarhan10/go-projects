@@ -10,5 +10,5 @@ import (
 
 func main() {
 	env.SetEnv()
-	log.Fatalln(http.ListenAndServe(":8080", routes.Router()))
+	log.Fatalln(http.ListenAndServe(":8080", routes.RouterV1()))
 }
