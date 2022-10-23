@@ -52,4 +52,9 @@ CONFIG_AUTH_PASSWORD=youremailpassword
 ## API Documentation
 
 Full API Documentation in Postman
+
 [![N|Solid](https://logosdownload.com/logo/postman-logo-512.png)](https://documenter.getpostman.com/view/13066205/2s84DrP1cA)
+
+Check out my journey creating this project in Medium!
+
+[![N|Solid](https://miro.medium.com/max/8978/1*s986xIGqhfsN8U--09_AdA.png)](https://medium.com/@pratamafarhan10/back-end-to-do-list-app-planning-my-first-project-with-go-1-be36647df691)
