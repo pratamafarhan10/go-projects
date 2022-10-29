@@ -22,7 +22,6 @@ import (
 
 type AuthController struct{}
 
-// var SampleSecretKey = []byte("SecretYouShouldHide")
 const CONFIG_SMTP_HOST = "smtp.gmail.com"
 const CONFIG_SMTP_PORT = 587
 const CONFIG_SENDER_NAME = "To-Do List ltd"
@@ -68,17 +67,17 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 	req.Verification.Token = uuid.New().String()
 	req.Verification.Expires = time.Now().Add(24 * 7 * time.Hour).Format(time.Layout)
 
+	id, err := req.InsertUser()
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	err = ac.SendEmail(req, "To-Do List App User Verification", `
 	<a href="http://localhost:8080/verify/`+req.Verification.Token+`">Verify your email</a>
 	`)
 	if err != nil {
 		fmt.Println(err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	id, err := req.InsertUser()
-	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -126,7 +125,7 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 	// Compare password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		sendErrorResponse(w, "wrong password", http.StatusNotFound)
+		sendErrorResponse(w, "wrong password", http.StatusUnauthorized)
 		return
 	}
 

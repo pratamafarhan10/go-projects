@@ -39,6 +39,9 @@ go get gopkg.in/gomail.v2
 go get golang.org/x/crypto/bcrypt
 go get go.mongodb.org/mongo-driver/bson
 go get go.mongodb.org/mongo-driver/mongo
+
+cd cmd
+go run main.go
 ```
 
 For development environments...
