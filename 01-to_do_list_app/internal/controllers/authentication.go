@@ -48,7 +48,7 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 	alreadyTaken := req.EmailAlreadyTaken()
 	if alreadyTaken {
 		data := map[string][]string{
-			"username": {"username already taken"},
+			"email": {"email already taken"},
 		}
 		sendErrorResponse(w, data, http.StatusNotFound)
 		return
@@ -74,7 +74,7 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 	}
 
 	err = ac.SendEmail(req, "To-Do List App User Verification", `
-	<a href="http://localhost:8080/verify/`+req.Verification.Token+`">Verify your email</a>
+	<a href="http://localhost:8080/api/v1/verify/`+req.Verification.Token+`">Verify your email</a>
 	`)
 	if err != nil {
 		fmt.Println(err)
@@ -211,7 +211,7 @@ func (ac AuthController) VerifyEmail(w http.ResponseWriter, r *http.Request, p h
 		user.UpdateUser(bson.M{"_id": user.Id}, bson.M{"$set": bson.M{"verification.token": user.Verification.Token, "verification.expires": user.Verification.Expires}})
 
 		ac.SendEmail(user, "To-Do List App User Verification", `
-		<a href="http://localhost:8080/verify/`+user.Verification.Token+`">Verify your email</a>
+		<a href="http://localhost:8080/api/v1/verify/`+user.Verification.Token+`">Verify your email</a>
 		`)
 		sendErrorResponse(w, "token expires", http.StatusNotFound)
 
@@ -265,7 +265,7 @@ func (ac AuthController) SendForgotPassword(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = ac.SendEmail(req, "Forgot Password", `
-	<a href="http://localhost:8080/forgotpassword/`+req.ForgotPassword.Token+`">Change password</a>
+	<a href="http://localhost:8080/api/v1/forgotpassword/`+req.ForgotPassword.Token+`">Change password</a>
 	`)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

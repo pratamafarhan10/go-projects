@@ -127,10 +127,12 @@ func (uc UserController) StorePicture(w http.ResponseWriter, f multipart.File, h
 	// Picture
 	filename := `/assets/` + userId + `.` + imgType
 	// Delete current picture
-	err := os.Remove(`..` + currentPicture)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return "", fmt.Errorf("internal server error")
+	if currentPicture != "" {
+		err := os.Remove(`..` + currentPicture)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return "", fmt.Errorf("internal server error")
+		}
 	}
 
 	nf, err := os.Create(`..` + filename)
